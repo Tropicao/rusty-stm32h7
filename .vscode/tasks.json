@@ -59,5 +59,22 @@
             "problemMatcher": [],
             "group": "build"
         },
+        {
+            "label": "Convert Elf to Bin",
+            "type": "shell",
+            "problemMatcher": [],
+            "command": "arm-none-eabi-objcopy -O binary ${workspaceFolder}/target/thumbv7em-none-eabihf/debug/inno-rust inno-rust.bin",
+            "dependsOn": "Cargo Build (debug)"
+        },
+        {
+            "label": "Flash debug",
+            "type": "shell",
+            "command": "${workspaceFolder}/flash_target.sh",
+            "args": [
+                "${workspaceFolder}/inno-rust.bin"
+            ],
+            "problemMatcher": [],
+            "dependsOn": "Convert Elf to Bin"
+        }
     ]
 }
