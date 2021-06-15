@@ -75,6 +75,16 @@
             ],
             "problemMatcher": [],
             "dependsOn": "Convert Elf to Bin"
+        },
+        {
+            "label": "Reset",
+            "type": "shell",
+            "command":"/home/alexis/Projets/STM32CubeProgrammer/bin/STM32_Programmer_CLI",
+            "args": [
+                "-c port=SWD ap=0 freq=16000",
+                "-HardRst"
+            ],
+            "problemMatcher": []
         }
     ]
 }
