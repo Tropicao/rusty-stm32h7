@@ -14,19 +14,18 @@ use crate::hal::{
     prelude::*,
     hal::digital::v2::InputPin,
     hal::digital::v2::OutputPin,
-    delay::Delay
+    delay::DelayFromCountDownTimer
 };
 
 #[entry]
 fn main() -> ! {
     let dp = pac::Peripherals::take().unwrap();
-    let cp = cortex_m::Peripherals::take().unwrap();
 
     let pwr = dp.PWR.constrain();
     let pwrcfg = pwr.freeze();
 
     let rcc = dp.RCC.constrain();
-    let ccdr = rcc.sys_ck(64.mhz()).freeze(pwrcfg, &dp.SYSCFG);
+    let ccdr = rcc.sys_ck(200.mhz()).freeze(pwrcfg, &dp.SYSCFG);
 
     let gpioe = dp.GPIOE.split(ccdr.peripheral.GPIOE);
     let gpiob = dp.GPIOB.split(ccdr.peripheral.GPIOB);
@@ -43,7 +42,8 @@ fn main() -> ! {
         &ccdr.clocks,
     );
 
-    let mut delay = Delay::new(cp.SYST, ccdr.clocks);
+    let timer2 = dp.TIM2.timer(100.ms(), ccdr.peripheral.TIM2, &ccdr.clocks);
+    let mut delay = DelayFromCountDownTimer::new(timer2);
     led_controller_reset.set_low().unwrap();
     delay.delay_ms(5 as u16);
     led_controller_reset.set_high().unwrap();
