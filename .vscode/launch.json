@@ -34,8 +34,7 @@
                 "interface/stlink.cfg",
                 "target/stm32h7x.cfg",
             ],
-            "postLaunchCommands": ["monitor reset init"],
-            "overrideRestartCommands": ["monitor reset init"],
+            "postLaunchCommands": ["monitor arm semihosting enable"],
             // "svdFile": "${workspaceRoot}/.vscode/STM32F303.svd",
             // "swoConfig": {
             //     "enabled": true,
