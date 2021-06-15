@@ -21,17 +21,17 @@ use crate::hal::{
 fn main() -> ! {
     let dp = pac::Peripherals::take().unwrap();
 
+    // Configure clock tree with HSI and PLL to reach 200Mhz
     let pwr = dp.PWR.constrain();
     let pwrcfg = pwr.freeze();
-
     let rcc = dp.RCC.constrain();
     let ccdr = rcc.sys_ck(200.mhz()).freeze(pwrcfg, &dp.SYSCFG);
 
+    // Configure I2C for led driver and GPIO for buttons
     let gpioe = dp.GPIOE.split(ccdr.peripheral.GPIOE);
     let gpiob = dp.GPIOB.split(ccdr.peripheral.GPIOB);
     let button = gpioe.pe9.into_pull_up_input();
     let mut led_controller_reset = gpioe.pe15.into_push_pull_output();
-
     let mut led_controller = dp.I2C2.i2c(
         (
             gpiob.pb10.into_alternate_af4().set_open_drain(),
@@ -41,24 +41,27 @@ fn main() -> ! {
         ccdr.peripheral.I2C2,
         &ccdr.clocks,
     );
-
-    let timer2 = dp.TIM2.timer(100.ms(), ccdr.peripheral.TIM2, &ccdr.clocks);
-    let mut delay = DelayFromCountDownTimer::new(timer2);
     led_controller_reset.set_low().unwrap();
     delay.delay_ms(5 as u16);
     led_controller_reset.set_high().unwrap();
 
-    // Configure prescaler
+    // Configure led driver
     let prescaler_data = [0x01, 0x00];
     led_controller.write(0x60, &prescaler_data).unwrap();
     let prescaler_data = [0x03, 0x00];
     led_controller.write(0x60, &prescaler_data).unwrap();
+
+    // Configure timer for delays
+    let timer2 = dp.TIM2.timer(100.ms(), ccdr.peripheral.TIM2, &ccdr.clocks);
+    let mut delay = DelayFromCountDownTimer::new(timer2);
 
     // Set green led on
     let led_command = [0x05, 0x00];
     led_controller.write(0x60, &led_command).unwrap();
     let mut count = 0;
     let mut sys_led = false;
+
+    // Loop : blink red led each second, set green led to follow button state
     loop {
         let button_state = button.is_low().unwrap();
         let buffer = [0x05, if button_state {1} else {0}];
